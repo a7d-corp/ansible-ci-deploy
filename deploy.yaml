@@ -18,6 +18,7 @@
         com.docker.network.driver.mtu: 1450
     loop: "{{ docker_networks }}"
     when: item.subnet is defined
+    no_log: true
 
   - name: create docker volume dirs
     file:
@@ -27,6 +28,7 @@
       group: "{{ item.group | default('root') }}"
       recurse: yes
     loop: "{{ docker_volumes }}"
+    no_log: true
 
   - name: template config files
     template:
@@ -38,6 +40,7 @@
       group: "{{ item.group | default('root') }}"
     register: templated_files
     loop: "{{ docker_templates }}"
+    no_log: true
 
   - name: caddy
     community.docker.docker_container:
@@ -61,6 +64,7 @@
         GH_A7DDEV_CLIENT: "{{ caddy.security.a7ddev.gh.client_id | default('not-implemented') }}"
         GH_A7DDEV_SECRET: "{{ caddy.security.a7ddev.gh.client_secret | default('not-implemented') }}"
         GH_A7DDEV_KEY: "{{ caddy.security.a7ddev.key | default('not-implemented') }}"
+    no_log: true
 
   - name: woodpecker-server
     docker_container:
@@ -81,6 +85,7 @@
         WOODPECKER_GITHUB_CLIENT: "{{ woodpecker.server.gh.client_id }}"
         WOODPECKER_GITHUB_SECRET: "{{ woodpecker.server.gh.client_secret }}"
         WOODPECKER_AGENT_SECRET: "{{ woodpecker.agent_secret }}"
+    no_log: true
 
   - name: woodpecker-agent
     docker_container:
@@ -98,6 +103,7 @@
       env:
         WOODPECKER_SERVER: woodpecker-server:9000
         WOODPECKER_AGENT_SECRET: "{{ woodpecker.agent_secret }}"
+    no_log: true
 
   - name: restart handler
     docker_container:
