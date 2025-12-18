@@ -37,7 +37,7 @@ jobs:
       - name: run playbook
         uses: dawidd6/action-ansible-playbook@v5
         with:
-          playbook: deploy.yml
+          playbook: deploy.yaml
           key: ${{secrets.SSH_PRIVATE_KEY}}
           options: |
             --inventory ./inventory.ini
