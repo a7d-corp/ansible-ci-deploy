@@ -1,0 +1,107 @@
+---
+- hosts: all
+  gather_facts: yes
+
+  tasks:
+  - name: include vars.yaml
+    include_vars: vars.yaml
+
+  - name: create docker networks with ipam
+    docker_network:
+      name: "{{ item.name }}"
+      state: present
+      ipam_config:
+        - subnet: "{{ item.subnet }}"
+          gateway: "{{ item.gateway }}"
+      driver_options:
+        com.docker.network.driver.mtu: 1450
+    loop: "{{ docker_networks }}"
+    when: item.subnet is defined
+
+  - name: create docker volume dirs
+    file:
+      path: "{{ item.dir }}"
+      state: directory
+      owner: "{{ item.owner | default('root') }}"
+      group: "{{ item.group | default('root') }}"
+      recurse: yes
+    loop: "{{ docker_volumes }}"
+
+  - name: template config files
+    template:
+      src: "{{ item.template }}"
+      dest: "{{ item.dest }}"
+      backup: true
+      mode: "{{ item.mode | default('0644') }}"
+      owner: "{{ item.owner | default('root') }}"
+      group: "{{ item.group | default('root') }}"
+    register: templated_files
+    loop: "{{ docker_templates }}"
+
+  - name: caddy
+    community.docker.docker_container:
+      name: caddy
+      image: ghcr.io/a7d-corp/caddy-cloudflare:2.10.2
+      pull: true
+      state: started
+      restart_policy: unless-stopped
+      memory: 100M
+      volumes:
+        - "/opt/docker/caddy/config:/etc/caddy:rw"
+        - "/opt/docker/caddy/data:/data:rw"
+      published_ports:
+        - "80:80"
+        - "443:443"
+      networks:
+        - name: proxy
+      network_mode: default
+      env:
+        CF_DNS_API_TOKEN: "{{ caddy.cloudflare_dns_token }}"
+        GH_A7DDEV_CLIENT: "{{ caddy.security.a7ddev.gh.client_id | default('not-implemented') }}"
+        GH_A7DDEV_SECRET: "{{ caddy.security.a7ddev.gh.client_secret | default('not-implemented') }}"
+        GH_A7DDEV_KEY: "{{ caddy.security.a7ddev.key | default('not-implemented') }}"
+
+  - name: woodpecker-server
+    docker_container:
+      name: woodpecker-server
+      image: woodpeckerci/woodpecker-server:v3
+      pull: true
+      state: started
+      restart_policy: unless-stopped
+      volumes:
+        - "/opt/docker/woodpecker-server:/var/lib/woodpecker"
+      networks:
+        - name: proxy
+      network_mode: default
+      env:
+        WOODPECKER_OPEN: "{{ woodpecker.server.open }}"
+        WOODPECKER_HOST: "{{ woodpecker.scheme }}://{{ woodpecker.domain }}"
+        WOODPECKER_GITHUB: "{{ woodpecker.server.gh.enabled }}"
+        WOODPECKER_GITHUB_CLIENT: "{{ woodpecker.server.gh.client_id }}"
+        WOODPECKER_GITHUB_SECRET: "{{ woodpecker.server.gh.client_secret }}"
+        WOODPECKER_AGENT_SECRET: "{{ woodpecker.agent_secret }}"
+
+  - name: woodpecker-agent
+    docker_container:
+      name: woodpecker-agent
+      image: woodpeckerci/woodpecker-agent:v3
+      pull: true
+      state: started
+      restart_policy: unless-stopped
+      volumes:
+        - "/opt/docker/woodpecker-agent:/etc/woodpecker"
+        - "/var/run/docker.sock:/var/run/docker.sock"
+      networks:
+        - name: proxy
+      network_mode: default
+      env:
+        WOODPECKER_SERVER: woodpecker-server:9000
+        WOODPECKER_AGENT_SECRET: "{{ woodpecker.agent_secret }}"
+
+  - name: restart handler
+    docker_container:
+      name: "{{ item.item.handler }}"
+      restart: true
+    when: item.changed
+    with_items: "{{ templated_files.results }}"
+    no_log: true
