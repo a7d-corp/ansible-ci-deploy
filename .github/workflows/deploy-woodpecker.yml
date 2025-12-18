@@ -1,0 +1,44 @@
+name: Deploy Woodpecker CI
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (report changes without executing them)'
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve runner uid and gid
+        id: uid-gid
+        run: |
+          echo "uid=$(id -u)" >> $GITHUB_OUTPUT
+          echo "gid=$(id -g)" >> $GITHUB_OUTPUT
+      - name: decrypt files with ansible-vault
+        uses: taichunmin/github-actions-ansible-vault@v1
+        env:
+          UID: ${{ steps.uid-gid.outputs.uid }}
+          GID: ${{ steps.uid-gid.outputs.gid }}
+        with:
+          vault_key: ${{ secrets.VAULT_KEY }}
+          command: |
+            ansible-vault decrypt inventory.ini
+            ansible-vault decrypt vars.yaml
+            ansible-vault decrypt known_hosts
+            chown $UID:$GID inventory.ini vars.yaml known_hosts
+      - name: run playbook
+        uses: dawidd6/action-ansible-playbook@v5
+        with:
+          playbook: deploy.yml
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          options: |
+            --inventory ./inventory.ini
+            --verbose
+            ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run && '--check --diff' || '' }}
+
