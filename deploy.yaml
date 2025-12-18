@@ -6,6 +6,7 @@
   tasks:
   - name: include vars.yaml
     include_vars: vars.yaml
+    no_log: true
 
   - name: create docker networks with ipam
     docker_network:
