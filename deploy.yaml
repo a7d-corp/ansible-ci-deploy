@@ -70,7 +70,7 @@
   - name: woodpecker-server
     docker_container:
       name: woodpecker-server
-      image: woodpeckerci/woodpecker-server:v3
+      image: woodpeckerci/woodpecker-server:v3.12.0
       pull: true
       state: started
       restart_policy: unless-stopped
@@ -91,7 +91,7 @@
   - name: woodpecker-agent
     docker_container:
       name: woodpecker-agent
-      image: woodpeckerci/woodpecker-agent:v3
+      image: woodpeckerci/woodpecker-agent:v3.12.0
       pull: true
       state: started
       restart_policy: unless-stopped
