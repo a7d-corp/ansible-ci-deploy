@@ -3,49 +3,8 @@
 
     http_port 80
     https_port 443
-
-    order authenticate before respond
-    order authorize before basicauth
-
-    security {
-        oauth identity provider github {env.GH_A7DDEV_CLIENT} {env.GH_A7DDEV_SECRET}
-
-        authentication portal a7d-dev {
-            crypto default token lifetime 3600
-            crypto key sign-verify {env.GH_A7DDEV_KEY}
-            cookie domain {{ caddy.security.a7ddev.authentication.cookie_domain }}
-            enable identity provider github
-            ui {
-                links {
-                    "My Identity" "/whoami" icon "las la-user"
-                }
-            }
-
-            transform user {
-                match realm github
-                action add role authp/user
-            }
-            transform user {
-                no regex match any role "^authp/(admin|user)$"
-                action drop matched role
-            }
-        }
-
-        authorization policy a7d-dev {
-            set auth url {{ caddy.security.a7ddev.authorization.auth_url }}
-            crypto key verify {env.GH_A7DDEV_KEY}
-            allow roles authp/user
-            validate bearer header
-            inject headers with claims
-        }
-    }
-}
-
-{{ caddy.security.a7ddev.authorization.auth_domain }} {
-    authenticate with a7d-dev
 }
 
 {{ woodpecker.domain }} {
 	reverse_proxy http://woodpecker-server:8000
-    authorize with a7d-dev
 }

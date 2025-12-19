@@ -60,11 +60,6 @@
       networks:
         - name: proxy
       network_mode: default
-      env:
-        CF_DNS_API_TOKEN: "{{ caddy.cloudflare_dns_token }}"
-        GH_A7DDEV_CLIENT: "{{ caddy.security.a7ddev.gh.client_id | default('not-implemented') }}"
-        GH_A7DDEV_SECRET: "{{ caddy.security.a7ddev.gh.client_secret | default('not-implemented') }}"
-        GH_A7DDEV_KEY: "{{ caddy.security.a7ddev.key | default('not-implemented') }}"
     no_log: true
 
   - name: woodpecker-server
