@@ -97,8 +97,9 @@
         - name: proxy
       network_mode: default
       env:
-        WOODPECKER_SERVER: woodpecker-server:9000
+        WOODPECKER_SERVER: "woodpecker-server:9000"
         WOODPECKER_AGENT_SECRET: "{{ woodpecker.agent_secret }}"
+        WOODPECKER_MAX_WORKFLOWS: "4"
     no_log: true
 
   - name: restart handler
