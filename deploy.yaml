@@ -65,7 +65,7 @@
   - name: woodpecker-server
     docker_container:
       name: woodpecker-server
-      image: woodpeckerci/woodpecker-server:v3.12.0
+      image: woodpeckerci/woodpecker-server:v3.13.0
       pull: true
       state: started
       restart_policy: unless-stopped
