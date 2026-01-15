@@ -5,9 +5,10 @@
     "github>a7d-corp/renovate-presets:ansible.json5"
   ],
   "labels": ["skip-verify-changelog"],
-  "flux": {
+  "ansible": {
+    // whitelist specific files
     "fileMatch": [
-        "(helmrelease|helmrepository)\\.yaml$"
+      "^deploy.yaml"
     ]
   }
 }
