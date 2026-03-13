@@ -35,7 +35,7 @@ jobs:
             ansible-vault decrypt known_hosts
             chown $UID:$GID inventory.ini vars.yaml known_hosts
       - name: run playbook
-        uses: dawidd6/action-ansible-playbook@v6
+        uses: dawidd6/action-ansible-playbook@v8
         with:
           playbook: deploy.yaml
           key: ${{secrets.SSH_PRIVATE_KEY}}
