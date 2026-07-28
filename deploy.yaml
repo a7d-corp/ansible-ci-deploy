@@ -60,6 +60,8 @@
       networks:
         - name: proxy
       network_mode: default
+      env:
+        CF_DNS_API_TOKEN: "{{ caddy.cloudflare_dns_token }}"
     no_log: true
 
   - name: woodpecker-server
