@@ -46,7 +46,7 @@
   - name: caddy
     community.docker.docker_container:
       name: caddy
-      image: ghcr.io/a7d-corp/caddy-cloudflare:2.10.2
+      image: ghcr.io/a7d-corp/caddy-cloudflare:2.11.4
       pull: true
       state: started
       restart_policy: unless-stopped
