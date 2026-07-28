@@ -5,4 +5,7 @@
     "github>a7d-corp/renovate-presets:ansible.json5"
   ],
   "labels": ["skip-verify-changelog"],
+  "ansible": {
+    "managerFilePatterns": ["/(^|/)deploy\\.ya?ml$/"],
+  },
 }
