@@ -88,7 +88,7 @@
   - name: woodpecker-agent
     docker_container:
       name: woodpecker-agent
-      image: woodpeckerci/woodpecker-agent:v3.16.0
+      image: woodpeckerci/woodpecker-agent:v3.18.0
       pull: true
       state: started
       restart_policy: unless-stopped
